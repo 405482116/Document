@@ -110,3 +110,76 @@ const MultiSelectWithGroupAndExpand: React.FC = () => {
 };
 
 export default MultiSelectWithGroupAndExpand;
+
+
+import React, { useState, ChangeEvent } from 'react';
+import Fuse from 'fuse.js';
+
+interface SearchResult {
+  id: number;
+  name: string;
+}
+
+interface SearchComponentProps {
+  data: SearchResult[];
+  keysToSearch: string[];
+}
+
+const SearchComponent: React.FC<SearchComponentProps> = ({ data, keysToSearch }) => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+
+  const fuse = new Fuse(data, {
+    keys: keysToSearch,
+    includeScore: true,
+    threshold: 0.3,
+  });
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+
+    if (term.trim() === '') {
+      setSearchResults([]);
+    } else {
+      const results = fuse.search(term);
+      setSearchResults(results.map((result) => result.item));
+    }
+  };
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Search..."
+        value={searchTerm}
+        onChange={handleSearchChange}
+      />
+      <ul>
+        {searchResults.map((result) => (
+          <li key={result.id}>{result.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Example usage
+const data: SearchResult[] = [
+  { id: 1, name: 'Apple' },
+  { id: 2, name: 'Banana' },
+  { id: 3, name: 'Orange' },
+  { id: 4, name: 'Grape' },
+];
+
+const App: React.FC = () => {
+  return (
+    <div>
+      <h1>Fuzzy Search Example</h1>
+      <SearchComponent data={data} keysToSearch={['name']} />
+    </div>
+  );
+};
+
+export default App;
+
