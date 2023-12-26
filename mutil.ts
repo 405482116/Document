@@ -183,3 +183,41 @@ const App: React.FC = () => {
 
 export default App;
 
+import React, { useState, useEffect } from 'react';
+import _debounce from 'lodash/debounce';
+
+interface SearchProps {
+  onSearch: (query: string) => void;
+}
+
+const Search: React.FC<SearchProps> = ({ onSearch }) => {
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const delayedSearch = _debounce((query: string) => {
+    onSearch(query);
+  }, 300); // 设置延迟时间，单位为毫秒
+
+  useEffect(() => {
+    delayedSearch(searchTerm);
+
+    // 在组件卸载或下一次 effect 触发前取消防抖
+    return delayedSearch.cancel;
+  }, [searchTerm, delayedSearch]);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Search..."
+        value={searchTerm}
+        onChange={handleInputChange}
+      />
+    </div>
+  );
+};
+
+export default Search;
